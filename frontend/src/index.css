@@ -14,3 +14,7 @@
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%; 
 }
+
+.textWhite {
+  color: rgba(255, 255, 255, 0.87);
+}

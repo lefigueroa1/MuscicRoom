@@ -15,15 +15,15 @@ def gen_code():
 # Create your models here.
 class AppUser(AbstractUser):
     first_name = models.CharField(max_length=255, default=False)
-    last_name = models.CharField(max_length=255, default=False)
     email = models.EmailField(max_length=255, unique=True)
     is_active = models.BooleanField(default=True)
     USERNAME_FIELD = 'email'
     REQUIRED_FIELDS = []
 
 class Room(models.Model):
-    code = models.CharField(max_length=8, default=gen_code, unique=True)
-    host = models.CharField(max_length=50, default=False, unique=True)
+    code = models.CharField(
+    max_length=8, default=gen_code, unique=True)
+    host = models.CharField(max_length=50, unique=True)
     guest_can_pause = models.BooleanField(null=False, default=False)
     votes_to_skip = models.IntegerField(null=False, default=1)
     created_at = models.DateTimeField(auto_now_add=True)
