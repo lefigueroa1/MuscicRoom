@@ -9,7 +9,7 @@ urlpatterns = [
     path('signOut/', views.signOut),
     path("current_user", views.curr_user),
     path('room/', views.RoomView.as_view()),
-    # path("room/<str:roomCode>", )
+    path("get_room/", views.GetRoom.as_view()),
     path('create_room/', views.CreateRoomView.as_view()),
     re_path(r'.*', views.index),
     

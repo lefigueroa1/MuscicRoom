@@ -52,8 +52,11 @@ function CreateRoomPage() {
   }
 
   const handleRoomButtonPressed = async() =>{
-    let myResponse = await axios.post("/create_room/" , {"votes_to_skip":votesToSkip, "guest_can_pause":guestCanPause})
-    console.log(myResponse.data)
+    let myResponse = await axios.post("/create_room/" , {"votes_to_skip":votesToSkip, "guest_can_pause":guestCanPause })
+    console.log(myResponse.data['code'])
+    let code = myResponse.data['code']
+    window.location.href = `/room/${code}`
+
   }
 
   
@@ -66,7 +69,7 @@ function CreateRoomPage() {
   //       window.location.reload()
   //     }
   // }
-
+console.log(window.location)
 
   return (
     <div>

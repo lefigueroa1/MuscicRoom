@@ -25,15 +25,28 @@ function Room() {
     let [guestCanPause, setGuestCanPause] = useState(false);
     let [votesToSkip, setVotesToSkip] = useState(2);
     let [isHost, setIsHost] = useState(false);
-    // let roomCode = 
+    let code = window.location['href'].split("/").at(-1)
+    const getRoomDetails =()=>{
+        fetch('/get_room/' + '?code=' + code).then((response) => response.json()).then((data)=> {
+            console.log(data)
+            console.log(data['guest_can_pause'])
+            console.log(data['votes_to_skip'])
+            console.log(typeof data['host'])
+            setGuestCanPause(data['guest_can_pause']), 
+            setVotesToSkip(data['votes_to_skip']), 
+            setIsHost(data['is_host'])
+        })
+    }
+    getRoomDetails()
+  
   return (
     
         <div>
             
-        <h1>Room</h1>
+        <h1>Room: {code}</h1>
         <p>Votes: {votesToSkip}</p>
-        <p>Guest Can Pause: {guestCanPause}</p>
-        <p>Host: {isHost}</p>
+        <p>Guest Can Pause: {guestCanPause.toString()}</p>
+        <p>Host: {isHost.toString()}</p>
 
 
         </div>
