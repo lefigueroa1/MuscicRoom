@@ -28,10 +28,6 @@ function Room() {
     let code = window.location['href'].split("/").at(-1)
     const getRoomDetails =()=>{
         fetch('/get_room/' + '?code=' + code).then((response) => response.json()).then((data)=> {
-            console.log(data)
-            console.log(data['guest_can_pause'])
-            console.log(data['votes_to_skip'])
-            console.log(typeof data['host'])
             setGuestCanPause(data['guest_can_pause']), 
             setVotesToSkip(data['votes_to_skip']), 
             setIsHost(data['is_host'])

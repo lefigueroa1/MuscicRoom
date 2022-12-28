@@ -11,6 +11,8 @@ urlpatterns = [
     path('room/', views.RoomView.as_view()),
     path("get_room/", views.GetRoom.as_view()),
     path('create_room/', views.CreateRoomView.as_view()),
+    path("join_room/", views.JoinRoom.as_view()),
+    path("user_in_room/", views.UserInRoom.as_view()),
     re_path(r'.*', views.index),
     
 ]
