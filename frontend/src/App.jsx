@@ -7,6 +7,8 @@ import SignUpPage from './components/SignUpPage'
 import SignInPage from './components/SignInPage'
 import HomePage from './components/HomePage'
 import Room from './components/Room'
+import BasePage from './components/BasePage'
+import BasePage2 from './components/BasePage2'
 import { BrowserRouter as Router, Routes, Route, Link, Redirect} from "react-router-dom"
 import { useEffect } from 'react'
 
@@ -31,14 +33,37 @@ function App() {
         }
     }
     return cookieValue;
+    
   }
   const csrftoken = getCookie('csrftoken');
   axios.defaults.headers.common["X-CSRFToken"]=csrftoken
+
+
+  const curr_user= async() =>{
+      let myResponse = await axios.get("current_user")
+      let user = myResponse.data && myResponse.data[0] && myResponse.data[0].fields
+      setUser(user)}
+
+  useEffect(()=>{
+        curr_user()
+        // if(user){
+        //   window.location.href ="/home"
+        //   }
+      }, [])
+
+  // useEffect(()=>{
+  //   if(user){
+  //   // window.location.href ="/home"
+  //   console.log('test')
+  //   }
+  //   }, [user])
+
   return (
     <div className="App">
       <Router>
         <Routes>
-          <Route path  = "/" element={<HomePage/>}/>
+          <Route path  = "/" element={<BasePage user={user}/>}/>
+          <Route path  = "/home" element={<HomePage/>}/>
           <Route path = "/join" element={<RoomJoinPage/>}/>
           <Route path = "/create" element={<CreateRoomPage/>}/>
           <Route path = "/signUpPage" element={<SignUpPage/>}/>

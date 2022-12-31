@@ -13,6 +13,7 @@ urlpatterns = [
     path('create_room/', views.CreateRoomView.as_view()),
     path("join_room/", views.JoinRoom.as_view()),
     path("user_in_room/", views.UserInRoom.as_view()),
+    path("leave_room/", views.LeaveRoom.as_view()),
     re_path(r'.*', views.index),
     
 ]
