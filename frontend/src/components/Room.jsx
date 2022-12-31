@@ -32,7 +32,12 @@ function Room() {
             console.log(data)
             if(data['Room Not Found'] == "Invalid Room Code"){
                 window.location.href = '/home'
-            }else {console.log('true')}
+            }else {
+                console.log('true')
+                setGuestCanPause(data['guest_can_pause']), 
+                setVotesToSkip(data['votes_to_skip']), 
+                setIsHost(data['is_host'])
+            }
 
         })
             // if(response['ok'] == false){
@@ -52,14 +57,6 @@ function Room() {
     getRoomDetails()
 
     const leaveButtonPressed =()=> {
-        // const requestOptions = {
-        //     method: "POST",
-        //     headers: { "Content-Type": "application/json" },
-        //   };
-        //   fetch("/leave-room/", requestOptions).then((_response) => {
-            
-        //     window.location.href = '/'
-        //   });
         let myResponse = axios.post("/leave_room/")
         console.log(myResponse)
         window.location.href = '/'
