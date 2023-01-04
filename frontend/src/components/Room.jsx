@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { useState } from 'react'
 import {Grid, Button, Typography} from '@material-ui/core'
+import CreateRoomPage from './CreateRoomPage';
 
 
 
@@ -26,6 +27,8 @@ function Room() {
     let [guestCanPause, setGuestCanPause] = useState(false);
     let [votesToSkip, setVotesToSkip] = useState(2);
     let [isHost, setIsHost] = useState(false);
+    let [showSettings, setShowSettings] = useState(false);
+    let [spotifyAuth, setSpotifyAuth] = useState(false);
     let code = window.location['href'].split("/").at(-1)
     async function getRoomDetails (){
         fetch('/get_room/' + '?code=' + code).then((response) => response.json()).then((data)=> {
@@ -33,28 +36,31 @@ function Room() {
             if(data['Room Not Found'] == "Invalid Room Code"){
                 window.location.href = '/home'
             }else {
-                console.log('true')
                 setGuestCanPause(data['guest_can_pause']), 
                 setVotesToSkip(data['votes_to_skip']), 
                 setIsHost(data['is_host'])
             }
 
         })
-            // if(response['ok'] == false){
-       
-            //     window.location.href = '/home'
-            // }
-            // console.log(response)
-            // console.log(response.json())
-            // return response.json()
-        // })
-        // .then((data)=> {
-        //     setGuestCanPause(data['guest_can_pause']), 
-        //     setVotesToSkip(data['votes_to_skip']), 
-        //     setIsHost(data['is_host'])
-        // })
+        if (isHost){
+            authSpotify()
+        }
     }
     getRoomDetails()
+
+    function authSpotify(){
+        fetch("/is_auth/").then((response) => response.json()).then((data)=>{
+            setSpotifyAuth(data['status'])
+            console.log('div')
+            console.log(data['status'])
+            console.log('div2')
+            if (!data['status']){
+                fetch('/get_auth_url/').then((response) =>response.json()).then((data)=>{
+                    window.location.replace(data['url'])
+                })
+            }
+        })
+    }
 
     const leaveButtonPressed =()=> {
         let myResponse = axios.post("/leave_room/")
@@ -62,9 +68,47 @@ function Room() {
         window.location.href = '/'
     }
 
-        
-  
-  return (
+    function updateShowSettings(value){
+        setShowSettings(value)
+    }
+
+    function renderSettings(){
+        return(
+            <div>
+                <Grid container spacing={1}>
+                    <Grid item xs={12}>
+                        <CreateRoomPage 
+                        update={true} 
+                        votesToSkip={votesToSkip} 
+                        guestCanPause={guestCanPause}
+                        roomCode={code}
+                        test="test"
+                        />            
+                    </Grid>
+                    <Grid item xs={12}>
+                        <Button 
+                        variant='contained'
+                        color='secondary'
+                        onClick={() => updateShowSettings(false)}>Close</Button>
+                    </Grid>
+                </Grid>
+            
+            </div>)
+    }
+
+     function renderSettingsButton(){
+        return (
+            <div>
+                
+                <Button variant ='contained' color='primary' onClick={()=> updateShowSettings(true)}>Settings</Button>
+              
+            </div>
+        )
+     }
+  if (showSettings){
+    return renderSettings()
+  }
+  return(
     
     <div>
         <Grid container spacing={1}>
@@ -84,15 +128,15 @@ function Room() {
                 </Typography>
             </Grid>
             <Grid items xs={12}>
+                {isHost ? renderSettingsButton():null}
+            </Grid>
+            
+            <Grid items xs={12}>
                 <Button Button color='secondary' variant='contained' onClick={leaveButtonPressed}>
                     Leave Room
                 </Button>
             </Grid>
         </Grid>
-        <h1>Room: {code}</h1>
-        <p>Votes: {votesToSkip}</p>
-        <p>Guest Can Pause: {guestCanPause.toString()}</p>
-        <p>Host: {isHost.toString()}</p>
 
 
         </div>

@@ -68,7 +68,7 @@ function RoomJoinPage() {
         <Button variant='contained' color="primary" onClick={roomButtonPressed}>Enter Room</Button>
       </Grid>
       <Grid item xs={12}>
-        <Button variant ="contained" color='secondary' to="/" component={Link}>Back</Button>
+        <Button variant ="contained" color='secondary' to="/" component={Link}></Button>
       </Grid>
       
     </div>

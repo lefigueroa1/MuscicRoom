@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useEffect } from 'react'
 import axios from 'axios'
 import Button from "@material-ui/core/Button"
 import Grid from '@material-ui/core/Grid'
@@ -14,7 +15,8 @@ import { colors } from '@material-ui/core'
 
 
 
-function CreateRoomPage() {
+
+function CreateRoomPage(props) {
   function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -33,11 +35,21 @@ function CreateRoomPage() {
   const csrftoken = getCookie('csrftoken');
   axios.defaults.headers.common["X-CSRFToken"]=csrftoken
 
-  let defaultVotes = 2;
-
-  let [guestCanPause, setGuestCanPause] = useState(true);
-  let [votesToSkip, setVotesToSkip] = useState(defaultVotes);
   
+
+
+
+  let [guestCanPause, setGuestCanPause] = useState(false);
+  let [votesToSkip, setVotesToSkip] = useState(2);
+  let [update, setUpdate] = useState(props['update'])
+  useEffect(()=>{
+    if(update){
+      setGuestCanPause(props['guestCanPause'])
+      setVotesToSkip(props['votesToSkip'])
+    }
+    }, [update])
+
+
   const handleVotesChange = (e)=> {
     setVotesToSkip(e.target.value)
   };
@@ -55,16 +67,47 @@ function CreateRoomPage() {
     let myResponse = await axios.post("/create_room/" , {"votes_to_skip":votesToSkip, "guest_can_pause":guestCanPause })
     let code = myResponse.data['code']
     window.location.href = `/room/${code}`
-
   }
 
+  
+  // console.log('div')
+  // console.log(update)
+  // console.log('div2')
 
+  function renderCreateButton(){
+
+    return (
+    
+      <Grid container spacing={1}>
+        <Grid item xs={12} align="center" >
+          <Button color='primary' variant='contained' onClick={handleRoomButtonPressed}>Create Room</Button>
+        </Grid>
+        <Grid item xs={12} align="center" >
+          <Button color='secondary' variant='contained' to="/" component={Link}>Back</Button>
+        </Grid>
+      </Grid>  
+   
+    )
+  }
+
+  function renderUpdateButton(){
+    return(
+      <Grid container spacing={1}>
+        <Grid item xs={12} align="center" >
+          <Button color='primary' variant='contained' onClick={handleRoomButtonPressed}>Update Room</Button>
+        </Grid>
+      </Grid>  
+    )
+    
+  }
+
+  const title = update ? "Update Room" : "Create a Room";
   return (
     <div>
       <Grid container spacing={1}>
         <Grid item xs={12} align="center">
           <Typography component='h4' variant='h4'>
-            Create A Room
+            {title}
           </Typography>
         </Grid>
         <Grid item xs={12} align="center">
@@ -84,7 +127,7 @@ function CreateRoomPage() {
             required={true}
             type='number' 
             onChange={handleVotesChange}
-            defaultValue={defaultVotes}
+            defaultValue={votesToSkip}
             inputProps={{
               min: 1,
               style: {color: 'white', textAlign: "center"}
@@ -96,12 +139,16 @@ function CreateRoomPage() {
             </FormHelperText>
           </FormControl>
         </Grid>
-        <Grid item xs={12} align="center" >
-          <Button color='primary' variant='contained' onClick={handleRoomButtonPressed}>Create A Room</Button>
+        {/* <Grid item xs={12} align="center" >
+          <Button color='primary' variant='contained' onClick={handleRoomButtonPressed}>{title}</Button>
         </Grid>
         <Grid item xs={12} align="center" >
           <Button color='secondary' variant='contained' to="/" component={Link}>Back</Button>
-        </Grid>
+        </Grid> */}
+        {/* <Grid item xs={12} align="center" >
+          <Button color='primary' variant='contained' onClick={handleRoomButtonPressed}>{title}</Button>
+        </Grid> */}
+        {update ? renderUpdateButton() : renderCreateButton()}
       </Grid>
     </div>
   )
