@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {Grid, Button, Typography} from '@material-ui/core'
 import CreateRoomPage from './CreateRoomPage';
 
@@ -29,10 +29,11 @@ function Room() {
     let [isHost, setIsHost] = useState(false);
     let [showSettings, setShowSettings] = useState(false);
     let [spotifyAuth, setSpotifyAuth] = useState(false);
+    let [song, setSong] = useState(null)
     let code = window.location['href'].split("/").at(-1)
     async function getRoomDetails (){
         fetch('/get_room/' + '?code=' + code).then((response) => response.json()).then((data)=> {
-            console.log(data)
+            // console.log(data)
             if(data['Room Not Found'] == "Invalid Room Code"){
                 window.location.href = '/home'
             }else {
@@ -48,12 +49,14 @@ function Room() {
     }
     getRoomDetails()
 
+    
+
     function authSpotify(){
         fetch("/is_auth/").then((response) => response.json()).then((data)=>{
             setSpotifyAuth(data['status'])
-            console.log('div')
-            console.log(data['status'])
-            console.log('div2')
+            // console.log('div')
+            // console.log(data['status'])
+            // console.log('div2')
             if (!data['status']){
                 fetch('/get_auth_url/').then((response) =>response.json()).then((data)=>{
                     window.location.replace(data['url'])
@@ -61,10 +64,39 @@ function Room() {
             }
         })
     }
+    function getCurrentSong(){
+            fetch('/curr_song/').then((response)=> {
+                if(!response['ok']){
+                    return {}
+                }else {
+                    return response.json()
+                }}
+            )
+            .then((data) => {
+                setSong(data) 
+                // console.log(data)
+                console.log('hehe')
+            })
+            
+        }
+    // getCurrentSong()
+    useEffect(()=>{
+        getCurrentSong()
+        
+        }, [])
 
+    // useEffect(()=>{
+    //     // getCurrentSong()
+    //     if(song != null){
+    //         console.log(song)
+    //     }
+        
+    //         }, [song])
+
+    console.log(song)
     const leaveButtonPressed =()=> {
         let myResponse = axios.post("/leave_room/")
-        console.log(myResponse)
+        // console.log(myResponse)
         window.location.href = '/'
     }
 
@@ -117,7 +149,7 @@ function Room() {
                     Code : {code}
                 </Typography>
             </Grid>
-            <Grid items xs={12}>
+             {/*<Grid items xs={12}>
                 <Typography variant="h4" component="h4">
                     Votes: {votesToSkip}
                 </Typography>
@@ -126,10 +158,11 @@ function Room() {
                 <Typography variant="h4" component="h4">
                     Host: {isHost}
                 </Typography>
-            </Grid>
+            </Grid>*/}
+            {/* {song} */}
             <Grid items xs={12}>
                 {isHost ? renderSettingsButton():null}
-            </Grid>
+            </Grid> 
             
             <Grid items xs={12}>
                 <Button Button color='secondary' variant='contained' onClick={leaveButtonPressed}>

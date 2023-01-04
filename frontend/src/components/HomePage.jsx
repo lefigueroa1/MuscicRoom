@@ -41,6 +41,14 @@ function HomePage() {
         })
     }
 componentDidMount()
+const signOut=async()=>{
+    let myResponse=await axios.post('signOut/')
+    console.log(myResponse.data)
+    if (myResponse.data["SIGN OUT"] == true){
+      window.location.href = '/'
+    }
+    
+  }
 
 
 
@@ -60,6 +68,9 @@ componentDidMount()
                     </Button>
                     <Button color='secondary' to="/create" component={Link}>
                         Create A Room
+                    </Button>
+                    <Button color='secondary' onClick={signOut}>
+                        Log Off
                     </Button>
                 </ButtonGroup>
             </Grid>
