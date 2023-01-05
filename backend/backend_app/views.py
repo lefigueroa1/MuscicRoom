@@ -236,3 +236,5 @@ class CurrentSong(APIView):
         }
 
         return Response(song)
+
+# class PauseSong

@@ -2,6 +2,7 @@ import axios from 'axios'
 import { useState, useEffect } from 'react'
 import {Grid, Button, Typography} from '@material-ui/core'
 import CreateRoomPage from './CreateRoomPage';
+import MusicPlayer from './MusicPlayer';
 
 
 
@@ -31,6 +32,17 @@ function Room() {
     let [spotifyAuth, setSpotifyAuth] = useState(false);
     let [song, setSong] = useState(null)
     let code = window.location['href'].split("/").at(-1)
+
+    // async function componentDidMount() {
+    //     this.interval = setInterval(getCurrentSong, 1000)
+    // }
+
+    // async function componentDidMount() {
+    //     clearInterval(this.interval)
+    // }
+
+
+
     async function getRoomDetails (){
         fetch('/get_room/' + '?code=' + code).then((response) => response.json()).then((data)=> {
             // console.log(data)
@@ -79,11 +91,12 @@ function Room() {
             })
             
         }
-    // getCurrentSong()
     useEffect(()=>{
-        getCurrentSong()
+        setInterval(getCurrentSong, 1000) 
         
         }, [])
+
+    console.log(song)
 
     // useEffect(()=>{
     //     // getCurrentSong()
@@ -93,7 +106,6 @@ function Room() {
         
     //         }, [song])
 
-    console.log(song)
     const leaveButtonPressed =()=> {
         let myResponse = axios.post("/leave_room/")
         // console.log(myResponse)
@@ -160,6 +172,7 @@ function Room() {
                 </Typography>
             </Grid>*/}
             {/* {song} */}
+            <MusicPlayer {...song}/>
             <Grid items xs={12}>
                 {isHost ? renderSettingsButton():null}
             </Grid> 
