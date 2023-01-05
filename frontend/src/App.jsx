@@ -8,7 +8,7 @@ import SignInPage from './components/SignInPage'
 import HomePage from './components/HomePage'
 import Room from './components/Room'
 import BasePage from './components/BasePage'
-import BasePage2 from './components/BasePage2'
+import Api from './components/Api'
 import { BrowserRouter as Router, Routes, Route, Link, Redirect} from "react-router-dom"
 import { useEffect } from 'react'
 
@@ -64,6 +64,7 @@ function App() {
         <Routes>
           <Route path  = "/" element={<BasePage user={user}/>}/>
           <Route path  = "/home" element={<HomePage/>}/>
+          <Route path  = "/nounApi" element={<Api/>}/>
           <Route path = "/join" element={<RoomJoinPage/>}/>
           <Route path = "/create" element={<CreateRoomPage/>}/>
           <Route path = "/signUpPage" element={<SignUpPage/>}/>

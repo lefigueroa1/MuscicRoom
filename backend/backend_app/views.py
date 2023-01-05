@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect
 from django.http import HttpResponse, JsonResponse
 from django.contrib.auth import authenticate, login, logout
 from django.core import serializers as s
+from django.views.decorators.csrf import csrf_exempt
 from rest_framework import generics, status
 from rest_framework.views import APIView
 from rest_framework.decorators import api_view
@@ -9,8 +10,10 @@ from rest_framework.response import Response
 from .serializers import RoomSerializer, CreateRoomSerializer, UpdateRoomSerializer
 from .models import *
 from .credentials import REDIRECT_URI, CLIENT_SECRET, CLIENT_ID
-from .utilities import update_or_create_user_tokens, is_spotify_authenticated, execute_spotify_api_request
+from .utilities import update_or_create_user_tokens, is_spotify_authenticated, execute_spotify_api_request, pause_song, play_song, skip_song
 from requests import Request, post
+import requests as HTTP_Client
+from requests_oauthlib import OAuth1
 
 
 
@@ -19,12 +22,27 @@ def index (request):
     index_file = open('static/index.html').read()
     return HttpResponse(index_file)
 
+
+@api_view(['GET'])
+def api(request, item):
+    auth = OAuth1("82b32fc0da894829bd704214a41c1ad9", "060be90a5a0f4daf8cf26cc268435300")
+    endpoint = f"http://api.thenounproject.com/icon/{item}"
+    response = HTTP_Client.get(endpoint, auth=auth)
+    response = response.json()
+    print(response['icon'])
+    data = {
+        "item": item,
+        "img": response['icon']['icon_url']
+        }
+    return Response({'data': data})
+
+
 @api_view(['POST'])
 def signIn(request):
     email = request.data['email']
     password = request.data['password']
     user = authenticate(username = email, password=password)
-    print(user)
+    # print(user)
     if user is not None and user.is_active:
         login(request._request, user)
         return JsonResponse({'sign_in': True})
@@ -41,7 +59,7 @@ def curr_user(request):
 
 @api_view(['POST'])
 def signUp(request):
-    print('this is request.data: ', request.data)
+    # print('this is request.data: ', request.data)
     first_name = request.data['firstName']
     last_name = request.data['lastName']
     email = request.data['email']
@@ -99,7 +117,7 @@ class GetRoom(APIView):
 
         code = request.GET.get(self.lookup_url_kwarg)
         # code = "ABCDEF"
-        print(code)
+        # print(code)
         if code != None:
             room = Room.objects.filter(code=code)
             if len(room) > 0:
@@ -237,4 +255,35 @@ class CurrentSong(APIView):
 
         return Response(song)
 
-# class PauseSong
+class PauseSong(APIView):
+    def put(self, response, format=None):
+        room_code = self.request.session.get('room_code')
+        room = Room.objects.filter(code=room_code)[0]
+        if self.request.session.session_key == room.host or room.guest_can_pause:
+            pause_song(room.host)
+            return Response({'good':'good'})
+        
+        return Response({'mess':'error'})
+    
+class PlaySong(APIView):
+    def put(self, response, format=None):
+        room_code = self.request.session.get('room_code')
+        room = Room.objects.filter(code=room_code)[0]
+        if self.request.session.session_key == room.host or room.guest_can_pause:
+            play_song(room.host)
+            return Response({'good':'good'})
+        
+        return Response({'mess':'error'})
+
+class SkipSong(APIView):
+    def post(self, request, format=None):
+        room_code = self.request.session.get('room_code')
+        room = Room.objects.filter(code=room_code)[0]
+
+        if self.request.session.session_key == room.host: 
+            skip_song(room.host)
+            return Response({'mess':"succ"})
+        else:
+            return Response({'mess':'failed'})
+
+        return Response({}, status.HTTP_204_NO_CONTENT)

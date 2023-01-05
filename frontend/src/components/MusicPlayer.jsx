@@ -27,6 +27,41 @@ function MusicPlayer(props) {
       const csrftoken = getCookie('csrftoken');
       axios.defaults.headers.common["X-CSRFToken"]=csrftoken
 
+    // function pauseSong(){
+    //     fetch("/pause/" )
+    // }
+    // function playSong(){
+    //     fetch("/play/")
+    // }
+    // function pauseSong(){
+    //     const requestOptions = {
+    //         method: "PUT",
+    //         headers: {'Content-Type':"application/json"}
+    //     }
+    //     fetch("/pause/", requestOptions)
+    // }
+    const pauseSong=async()=>{
+        let myResponse=await axios.put('/pause/')
+        console.log(myResponse.data)
+        // if (myResponse.data["SIGN OUT"] == true){
+        //   window.location.href = '/'
+        // }
+        
+      }
+    
+    const playSong=async()=>{
+        let myResponse=await axios.put('/play/')
+        console.log(myResponse.data)
+    
+    }
+
+    const skipSong=async()=>{
+        let myResponse=await axios.post('/skip/')
+        console.log(myResponse.data)
+    
+    }
+
+
     const songProgress = (props.time / props.duration) * 100;
   return(
     
@@ -44,10 +79,10 @@ function MusicPlayer(props) {
                 {props.artist}
                 </Typography>
                 <div>
-                <IconButton>
+                <IconButton onClick={()=> props.is_playing ? pauseSong(): playSong()}>
                     {props.is_playing ? <PauseIcon /> : <PlayArrowIcon />}
                 </IconButton>
-                <IconButton>
+                <IconButton onClick={()=> skipSong()}>
                     <SkipNextIcon />
                 </IconButton>
                 </div>

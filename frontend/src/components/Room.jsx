@@ -93,10 +93,11 @@ function Room() {
         }
     useEffect(()=>{
         setInterval(getCurrentSong, 1000) 
+        // getCurrentSong()
         
         }, [])
 
-    console.log(song)
+    // console.log(song)
 
     // useEffect(()=>{
     //     // getCurrentSong()
