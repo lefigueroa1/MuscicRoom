@@ -10,6 +10,7 @@ urlpatterns = [
     path('room/', views.RoomView.as_view()),
     path("get_room/", views.GetRoom.as_view()),
     path('create_room/', views.CreateRoomView.as_view()),
+    path('update_room/', views.UpdateRoomView.as_view()),
     path("join_room/", views.JoinRoom.as_view()),
     path("user_in_room/", views.UserInRoom.as_view()),
     path("leave_room/", views.LeaveRoom.as_view()),
@@ -20,7 +21,7 @@ urlpatterns = [
     path("pause/", views.PauseSong.as_view()),
     path("play/", views.PlaySong.as_view()),
     path("skip/", views.SkipSong.as_view()),
-    path("api/<str:item>/", views.api),
+    # path("search/", views.SearchSong.as_view()),
     re_path(r'.*', views.index),
     
 ]

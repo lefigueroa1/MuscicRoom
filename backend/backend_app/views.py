@@ -10,7 +10,7 @@ from rest_framework.response import Response
 from .serializers import RoomSerializer, CreateRoomSerializer, UpdateRoomSerializer
 from .models import *
 from .credentials import REDIRECT_URI, CLIENT_SECRET, CLIENT_ID
-from .utilities import update_or_create_user_tokens, is_spotify_authenticated, execute_spotify_api_request, pause_song, play_song, skip_song
+from .utilities import update_or_create_user_tokens, is_spotify_authenticated, execute_spotify_api_request, pause_song, play_song, skip_song, search_song
 from requests import Request, post
 import requests as HTTP_Client
 from requests_oauthlib import OAuth1
@@ -21,20 +21,6 @@ from requests_oauthlib import OAuth1
 def index (request):
     index_file = open('static/index.html').read()
     return HttpResponse(index_file)
-
-
-@api_view(['GET'])
-def api(request, item):
-    auth = OAuth1("82b32fc0da894829bd704214a41c1ad9", "060be90a5a0f4daf8cf26cc268435300")
-    endpoint = f"http://api.thenounproject.com/icon/{item}"
-    response = HTTP_Client.get(endpoint, auth=auth)
-    response = response.json()
-    print(response['icon'])
-    data = {
-        "item": item,
-        "img": response['icon']['icon_url']
-        }
-    return Response({'data': data})
 
 
 @api_view(['POST'])
@@ -59,7 +45,6 @@ def curr_user(request):
 
 @api_view(['POST'])
 def signUp(request):
-    # print('this is request.data: ', request.data)
     first_name = request.data['firstName']
     last_name = request.data['lastName']
     email = request.data['email']
@@ -110,14 +95,37 @@ class CreateRoomView(APIView):
 
         return Response({'Bad Request': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)
 
+class UpdateRoomView(APIView):
+    serializer_class = UpdateRoomSerializer
+    def patch(self, request, format=None):
+        if not self.request.session.exists(self.request.session.session_key):
+            self.request.session.create()
+
+        serializer = self.serializer_class(data=request.data)
+        if serializer.is_valid():
+            guest_can_pause = serializer.data.get('guest_can_pause')
+            votes_to_skip = serializer.data.get('votes_to_skip')
+            code = serializer.data.get('code')
+            queryset = Room.objects.filter(code=code)
+            if not queryset.exists():
+                return Response({'mess': 'Room Not Found'})
+            room = queryset[0]
+            user_id = self.request.session.session_key
+            if room.host != user_id:
+                return Response({'mess': "Your Not The Host Of This Room"})
+            room.guest_can_pause = guest_can_pause
+            room.votes_to_skip = votes_to_skip
+            room.save(update_fields=['guest_can_pause', 'votes_to_skip'])
+            return Response(RoomSerializer(room).data, status=status.HTTP_200_OK)
+
+        return Response({'Bad Request': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)
+
 class GetRoom(APIView):
     serializer_class = RoomSerializer
     lookup_url_kwarg = 'code'
     def get(self,request, format=None):
 
         code = request.GET.get(self.lookup_url_kwarg)
-        # code = "ABCDEF"
-        # print(code)
         if code != None:
             room = Room.objects.filter(code=code)
             if len(room) > 0:
@@ -241,7 +249,7 @@ class CurrentSong(APIView):
                 artist_string += ", "
             name = artist.get('name')
             artist_string += name
-
+        votes = len(Vote.objects.filter(room=room, song_id=song_id))
         song = {
             'title': item.get('name'),
             'artist': artist_string,
@@ -249,16 +257,27 @@ class CurrentSong(APIView):
             'time': progress,
             'image_url': album_cover,
             'is_playing': is_playing,
-            'votes': 0,
+            'votes': votes,
+            "votes_required": room.votes_to_skip,
             'id': song_id
         }
-
+        self.update_room_song(room, song_id)
         return Response(song)
+    
+    def update_room_song(self, room, song_id):
+        current_song = room.current_song
+
+        if current_song != song_id:
+            room.current_song = song_id
+            room.save(update_fields=["current_song"])
+            votes = Vote.objects.filter(room=room).delete()
 
 class PauseSong(APIView):
     def put(self, response, format=None):
         room_code = self.request.session.get('room_code')
         room = Room.objects.filter(code=room_code)[0]
+        print('test')
+        print(room.code)
         if self.request.session.session_key == room.host or room.guest_can_pause:
             pause_song(room.host)
             return Response({'good':'good'})
@@ -279,11 +298,43 @@ class SkipSong(APIView):
     def post(self, request, format=None):
         room_code = self.request.session.get('room_code')
         room = Room.objects.filter(code=room_code)[0]
+        votes = Vote.objects.filter(room=room, song_id=room.current_song)
+        votes_needed = room.votes_to_skip
+
+        if self.request.session.session_key == room.host or len(votes) + 1 >= votes_needed:
+            votes.delete()
+            skip_song(room.host)
+        else:
+            vote = Vote(user=self.request.session.session_key,
+                        room=room, song_id=room.current_song)
+            vote.save()
+
+        return Response({}, status.HTTP_204_NO_CONTENT)
+class SearchSong(APIView):
+    def post(self, request, format=None):
+        userInput = request.data["input"]
+        room_code = self.request.session.get('room_code')
+        room = Room.objects.filter(code=room_code)[0]
 
         if self.request.session.session_key == room.host: 
-            skip_song(room.host)
-            return Response({'mess':"succ"})
+            response = search_song(room.host, userInput)
+            return Response({'data': response})
         else:
             return Response({'mess':'failed'})
 
-        return Response({}, status.HTTP_204_NO_CONTENT)
+# class SkipSong(APIView):
+#     def post(self, request, format=None):
+#         room_code = self.request.session.get('room_code')
+#         room = Room.objects.filter(code=room_code)[0]
+#         votes = Vote.objects.filter(room=room, song_id=room.current_song)
+#         votes_needed = room.votes_to_skip
+
+#         if self.request.session.session_key == room.host or len(votes) + 1 >= votes_needed:
+#             votes.delete()
+#             skip_song(room.host)
+#         else:
+#             vote = Vote(user=self.request.session.session_key,
+#                         room=room, song_id=room.current_song)
+#             vote.save()
+
+#         return Response({}, status.HTTP_204_NO_CONTENT)

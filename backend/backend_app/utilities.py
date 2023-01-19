@@ -3,6 +3,7 @@ from django.utils import timezone
 from datetime import timedelta
 from .credentials import CLIENT_ID, CLIENT_SECRET
 from requests import post, put, get
+import json
 
 
 BASE_URL = "https://api.spotify.com/v1/me/"
@@ -10,7 +11,7 @@ BASE_URL = "https://api.spotify.com/v1/me/"
 
 def get_user_tokens(session_id):
     user_tokens = SpotifyToken.objects.filter(user=session_id)
-    print(user_tokens)
+    # print(user_tokens)
     if user_tokens.exists():
         return user_tokens[0]
     else:
@@ -61,7 +62,7 @@ def refresh_spotify_token(session_id):
     update_or_create_user_tokens(
         session_id, access_token, token_type, expires_in, refresh_token)
 
-def execute_spotify_api_request(session_id, endpoint, post_=False, put_=False):
+def execute_spotify_api_request(session_id, endpoint, post_=False, put_=False, get_=False):
     tokens = get_user_tokens(session_id)
     headers = {'Content-Type': 'application/json', 'Authorization': "Bearer " + tokens.access_token}
 
@@ -69,13 +70,17 @@ def execute_spotify_api_request(session_id, endpoint, post_=False, put_=False):
         post(BASE_URL + endpoint, headers=headers)
     if put_:
         put(BASE_URL + endpoint, headers=headers)
+    # if get_:
+    #     get(BASE_URL + endpoint, headers=headers)
 
     response = get(BASE_URL + endpoint, {}, headers=headers)
     try:
         return response.json()
-    except:
-        
+    except Exception as e:
+        print(e)
         return {'Error': 'Issue with request'}
+
+
 
 def play_song(session_id):
     print('this is the play function')
@@ -89,3 +94,14 @@ def pause_song(session_id):
 def skip_song(session_id):
     print('this is the skip function')
     return execute_spotify_api_request(session_id, "player/next", post_=True)
+
+def search_song(session_id, input):
+    # print('this is the search function')
+    # print(input)
+    tokens = get_user_tokens(session_id)
+    headers = {'Content-Type': 'application/json', 'Authorization': "Bearer " + tokens.access_token}
+    response = get('https://api.spotify.com/v1/search?q=' + input + '&type=track', {}, headers=headers)
+    # print('############')
+    # print(response.json())
+    # print('############')
+    return response.json()
